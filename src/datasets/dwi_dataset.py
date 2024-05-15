@@ -2,6 +2,7 @@ from typing import Literal
 from torch.utils.data import Dataset, DataLoader
 import torch
 import numpy as np
+import pandas as pd
 import random
 from torchvision.transforms import v2
 from pathlib import Path
@@ -33,43 +34,44 @@ def undersample(kspace: torch.Tensor, factor: int) -> torch.Tensor:
 
 class KSpace_Dataset(Dataset):
     """
-    A Dataset class for handling k-Space data.
+    Dataset class for working with k-space data.
 
-    Attributes:
-        csv: A CSV file containing the dataset.
-        train: A boolean indicating if the dataset is for training.
-        test: A boolean indicating if the dataset is for testing. Defaults to False.
-        grappa: A boolean indicating if GRAPPA (GeneRalized Autocalibrating Partial Parallel Acquisition) is used. Defaults to False.
-        data_type: A string indicating the type of data. It can be "magnitude", "magnitude_phase", or "magnitude_kspace".
-        sampling_factor: An integer indicating the sampling factor. Defaults to None.
+    Args:
+        data_path (Path | str): The path to the data.
+        csv (pd.DataFrame): The DataFrame containing the data information.
+        train (bool): Flag indicating whether the dataset is for training or not.
+        grappa (bool, optional): Flag indicating whether GRAPPA reconstruction is used. Defaults to False.
+        data_type (str, optional): The type of data to be used. Defaults to "magnitude".
+        sampling_factor (int | None, optional): The sampling factor for undersampling. Defaults to None.
     """
+
     def __init__(
         self,
-        csv,
+        data_path: Path | str,
+        csv: pd.DataFrame,
         train: bool,
-        test: bool = False,
         grappa: bool = False,
         data_type: str = Literal["magnitude", "magnitude_phase", "magnitude_kspace"],
         sampling_factor: int | None = None,
     ) -> None:
-        super().__init__(csv, train, test)
-
-        assert data_type in [
-            "magnitude",
-            "magnitude_phase",
-            "magnitude_kspace",
-        ], "Invalid data type"
-
+        self.data_path = data_path
         self.csv = csv
         self.train = train
-        self.test = test
         self.grappa = grappa
         self.data_type = data_type
         self.sampling_factor = sampling_factor
 
     def __getitem__(self, idx: int):
-            
-        kspace = np.load(Path(self.csv['fastmri_rawfile'][idx]))
+        """
+        Get the item at the specified index.
+
+        Args:
+            idx (int): The index of the item.
+
+        Returns:
+            dict: A dictionary containing the image and label.
+        """
+        kspace = np.load(Path(self.data_path, self.csv['fastmri_rawfile'][idx]))
 
         self.y = self.csv["PIRADS"][idx] - 1
         self.y = int(self.y > 1)
@@ -108,6 +110,15 @@ class KSpace_Dataset(Dataset):
         )
 
         return data_dict
+    
+    def __len__(self):
+        """
+        Get the length of the dataset.
+
+        Returns:
+            int: The length of the dataset.
+        """
+        return len(self.csv['fastmri_rawfile'])
 
     def stack_complex(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -163,24 +174,28 @@ class KSpace_Dataset(Dataset):
 
 
 def get_loaders(
-    train_csv=None,
-    val_csv=None,
+    data_path: Path | str,
+    train_csv: pd.DataFrame,
+    val_csv: pd.DataFrame,
+    data_type: str = Literal["magnitude", "magnitude_phase", "magnitude_kspace"],
     batch_size: int = 32,
-    sampling_factor=None,
+    sampling_factor: int = None,
 ):
     """
-    Get data loaders for training and validation datasets.
+    Returns the train and validation data loaders for a given dataset.
 
     Args:
-        train_csv (str): Path to the CSV file containing training data.
-        val_csv (str): Path to the CSV file containing validation data.
-        batch_size (int): Number of samples per batch.
-        sampling_factor (float): Sampling factor for the validation dataset.
+        data_path (Path | str): The path to the dataset.
+        train_csv (pd.DataFrame): The DataFrame containing the training data.
+        val_csv (pd.DataFrame): The DataFrame containing the validation data.
+        data_type (str, optional): The type of data to load. Defaults to "magnitude".
+        batch_size (int, optional): The batch size for the data loaders. Defaults to 32.
+        sampling_factor (int, optional): The sampling factor for the data. Defaults to None.
 
     Returns:
-        train_loader (torch.utils.data.DataLoader): Data loader for the training dataset.
-        val_loader (torch.utils.data.DataLoader): Data loader for the validation dataset.
+        tuple: A tuple containing the train and validation data loaders.
     """
+
     dataloader_params = {
         "batch_size": batch_size,
         "shuffle": True,
@@ -189,8 +204,8 @@ def get_loaders(
         "prefetch_factor": 4,
     }
 
-    train_dataset = KSpace_Dataset(train_csv, train=True)
-    val_dataset = KSpace_Dataset(val_csv, train=False, sampling_factor=sampling_factor)
+    train_dataset = KSpace_Dataset(data_path, train_csv, train=True, data_type=data_type, sampling_factor=sampling_factor)
+    val_dataset = KSpace_Dataset(data_path, val_csv, train=False, data_type=data_type, sampling_factor=sampling_factor)
 
     train_loader = DataLoader(train_dataset, **dataloader_params)
     val_loader = DataLoader(val_dataset, **dataloader_params)
@@ -199,7 +214,8 @@ def get_loaders(
 
 
 def get_test_loader(
-    test_csv: Path | str,
+    data_path: Path | str,
+    test_csv: pd.DataFrame,
     batch_size: int = 32,
     sampling_factor: int | None = None,
 ):
@@ -207,13 +223,15 @@ def get_test_loader(
     Returns a DataLoader object for the test dataset.
 
     Args:
-        test_csv (Path or str): Path to the CSV file containing test dataset information.
-        batch_size (int, optional): Number of samples per batch. Defaults to 32.
-        sampling_factor (int or None, optional): Sampling factor for the test dataset. Defaults to None.
+        data_path (Path | str): The path to the data.
+        test_csv (pd.DataFrame): The DataFrame containing the test data.
+        batch_size (int, optional): The batch size for the DataLoader. Defaults to 32.
+        sampling_factor (int | None, optional): The sampling factor for the dataset. Defaults to None.
 
     Returns:
-        DataLoader: DataLoader object for the test dataset.
+        DataLoader: The DataLoader object for the test dataset.
     """
+
     dataloader_params = {
         "batch_size": batch_size,
         "shuffle": False,
@@ -223,7 +241,7 @@ def get_test_loader(
     }
 
     test_dataset = KSpace_Dataset(
-        test_csv, train=False, test=True, sampling_factor=sampling_factor
+        data_path, test_csv, train=False, sampling_factor=sampling_factor
     )
 
     test_loader = DataLoader(test_dataset, **dataloader_params)
