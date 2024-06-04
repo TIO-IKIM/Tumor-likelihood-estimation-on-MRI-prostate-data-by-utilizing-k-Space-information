@@ -126,7 +126,7 @@ def pca_compression(kspace):
     # pass transformed data
     return finalKspace
 
-def run(input_path: str, save_path: str, grappa: bool=False, averaging: bool=True, undersampling_factor: int | None=None):
+def run(input_path: str, save_path: str, grappa: bool=False, averaging: bool=True):
     """
     Perform PCA-based reconstruction on DWI data.
 
@@ -135,7 +135,6 @@ def run(input_path: str, save_path: str, grappa: bool=False, averaging: bool=Tru
         save_path (str): Path to save the reconstructed data.
         grappa (bool): Flag indicating whether to use GRAPPA reconstruction.
         averaging (bool): Flag indicating whether to average slices before PCA.
-        undersampling_factor (int | None, optional): Undersampling factor for GRAPPA reconstruction. Defaults to None.
 
     Returns:
         None
