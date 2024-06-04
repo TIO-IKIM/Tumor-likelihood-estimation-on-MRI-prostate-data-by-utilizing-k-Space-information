@@ -151,7 +151,7 @@ def run(input_path: str, save_path: str, grappa: bool=False, averaging: bool=Tru
 
             for slc in range(kspace_summed.shape[0]):
                 x_pca = pca_compression(kspace_summed[slc, ...])[0,...]
-                np.save(f"{Path(save_path, filename)}_slice{slc}.npy", x_pca)
+                np.save(f"{Path(save_path, filename)}_slice{slc + 1}.npy", x_pca)
 
         else:
             kspace = h5py.File(file, 'r')['kspace']
@@ -163,15 +163,14 @@ def run(input_path: str, save_path: str, grappa: bool=False, averaging: bool=Tru
                 for slc in range(kspace_summed.shape[0]):
                     kspace_summed_slc = kspace_summed[slc, ...]
                     x_pca = pca_compression(kspace_summed_slc)[0,...]
-                    np.save(f"{Path(save_path, filename)}_slice{slc}.npy", x_pca)
+                    np.save(f"{Path(save_path, filename)}_slice{slc + 1}.npy", x_pca)
             else:
                 for slc in range(kspace.shape[1]):
                     kspace_slice = kspace[:,slc,...].swapaxes(0, 1)
                     x_pca = np.empty(kspace_slice.shape[1:], dtype=complex)
                     for i in range(kspace_slice.shape[1]):
                         x_pca[i, ...] = pca_compression(kspace_slice[:,i,...])[0]
-                    np.save(f"{Path(save_path, filename)}_slice{slc}.npy", x_pca)
-
+                    np.save(f"{Path(save_path, filename)}_slice{slc + 1}.npy", x_pca)
 
 if __name__ == "__main__":
     train_path = "/path/to/input"

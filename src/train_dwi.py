@@ -14,7 +14,10 @@ from model import ConvNext
 from utils.validation import validation
 from utils.IKIMLogger import IKIMLogger
 
-parser = argparse.ArgumentParser(prog="Training")
+parser = argparse.ArgumentParser(
+    prog="Training",
+    description="Train a neural network to predict the likelihood of PCa on the FastMRI Prostate raw dataset.",
+)
 
 parser.add_argument("--e", type=int, default=100, help="Number of epochs for training")
 parser.add_argument(
@@ -23,8 +26,8 @@ parser.add_argument(
 parser.add_argument(
     "--gpu",
     type=int,
-    default=2,
-    help=("GPU used for training."),
+    default=0,
+    help="GPU used for training.",
 )
 parser.add_argument(
     "--config",
@@ -65,16 +68,15 @@ class EarlyStopping(object):
         logger=None,
     ):
         """
+        Initialize the EarlyStopping object.
+
         Args:
-            patience (int): How long to wait after last time performance improved.
-                            Default: 10
-            verbose (bool): If True, prints a message for each performance improvement.
-                            Default: True
-            delta (float): Minimum change in the monitored quantity to qualify as an improvement.
-                            Default: 0
-            monitor (str): Monitored variable.
-                            Default: 'val_loss'
-            op_type (str): 'min' or 'max'
+            patience (int): Number of epochs with no improvement after which training will be stopped. Default is 10.
+            verbose (bool): If True, prints a message for each epoch where the validation loss decreases. Default is True.
+            delta (float): Minimum change in the monitored quantity to qualify as an improvement. Default is 0.
+            monitor (str): Quantity to be monitored. Default is "val_loss".
+            op_type (str): Type of optimization. "min" for minimizing the monitored quantity, "max" for maximizing it. Default is "min".
+            logger (object): Logger object to log messages. Default is None.
         """
         self.patience = patience
         self.verbose = verbose
@@ -184,7 +186,7 @@ class TrainNetwork:
 
             data = data_dict["image"].to(device=self.device, non_blocking=True)
 
-            predictions, _ = self.model(data)
+            predictions = self.model(data)
 
             targets = data_dict["label"].to(device=data.device, non_blocking=True)
 
@@ -230,7 +232,7 @@ class TrainNetwork:
 
             # forward
             with torch.no_grad():
-                predictions, _ = self.model(data)
+                predictions = self.model(data)
 
             targets = data_dict["label"].to(device=data.device, non_blocking=True)
 
@@ -244,7 +246,9 @@ class TrainNetwork:
             total_validation_loss += loss.item()
 
         val_metrics = validation(
-            predictions=torch.cat(preds_sum), targets=torch.cat(targets_sum), num_classes=2
+            predictions=torch.cat(preds_sum),
+            targets=torch.cat(targets_sum),
+            num_classes=2,
         )
         total_validation_loss /= len(self.val_loader)
         logger.info(f"Val-loss: {total_validation_loss:.3f}")
@@ -262,16 +266,18 @@ class TrainNetwork:
         self.model.train()
 
     def main(self) -> None:
-        """Perfoms all necessary training steps by initiating the epoch loop
-        and saves the trained model at the end.
-
-        Args:
-            config (dict): Dictionary containing predefined settings used by several external functions.
         """
+        Main method for training the model.
 
-        csv = pd.read_csv(self.data_path)
-        train_csv = csv[csv["data_split"] == "training"].reset_index()
-        val_csv = csv[csv["data_split"] == "validation"].reset_index()
+        Reads train and validation CSV files, initializes loaders, optimizer, loss function,
+        and starts the training loop. Also performs early stopping based on the validation
+        performance.
+
+        Returns:
+            None
+        """
+        train_csv = pd.read_csv("datasets/dwi_2D_train.csv")
+        val_csv = pd.read_csv("datasets/dwi_2D_val.csv")
 
         self.metric_list = []
         self.save_folder = f"{self.base_output}/train_{self.model_name}"
@@ -280,8 +286,10 @@ class TrainNetwork:
         logger.info(f"Device: {self.device}")
 
         self.train_loader, self.val_loader = get_loaders(
+            data_path=self.data_path,
             train_csv=train_csv,
             val_csv=val_csv,
+            data_type=self.data_type,
             batch_size=self.batch_size,
             sampling_factor=None,
         )
@@ -324,7 +332,7 @@ if __name__ == "__main__":
     torch.backends.cudnn.allow_tf32 = True
 
     args = parser.parse_args()
-    args.config = "/configs/" + args.config
+    args.config = "src/configs/" + args.config
 
     with open(args.config, "r") as conf:
         config = yaml.safe_load(conf)
@@ -333,8 +341,8 @@ if __name__ == "__main__":
 
     ikim_logger = IKIMLogger(
         level=args.log,
-        log_dir="../logs/",
-        comment=(f"train_{config['model']}_{config['lr']}_{config['comment']}"),
+        log_dir="logs/",
+        comment=(f"train_{config['lr']}_{config['comment']}"),
     )
     logger = ikim_logger.create_logger()
 

@@ -1,10 +1,10 @@
-data_path: ../data/dwi_2D.csv 
-base_output: ../output/
+data_path: /path/to/data/folder
+base_output: output/
 data_type: magnitude # Must be either magnitude, magnitude_phase, or magnitude_kspace
 in_channel: 1 # if data_type is magnitude, in_channel must be 1, if data_type is magnitude_phase, in_channel must be 2, if data_type is magnitude_kspace, in_channel must be 3
-classes: 2
+num_classes: 2
 
 lr: 1.0e-04
-batch_size: 128
+batch_size: 1
 
 comment: 

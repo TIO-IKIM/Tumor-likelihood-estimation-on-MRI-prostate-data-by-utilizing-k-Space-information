@@ -1,0 +1,11 @@
+h5py==3.9.0
+numpy==1.25.0
+pandas==2.0.0
+PyYAML==6.0.1
+scikit_learn==1.2.2
+scikit-image==0.23.2
+timm==0.9.12
+torch==2.1.2
+torchmetrics==1.1.0
+torchvision==0.16.2
+tqdm==4.65.0
