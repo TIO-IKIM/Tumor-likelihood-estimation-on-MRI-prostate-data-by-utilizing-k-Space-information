@@ -33,7 +33,7 @@ This repository provides the full pipeline, from data preparation, including pri
 ## Getting started
 1. Clone repository:
    
-       git clone https://github.com/TIO-IKIM/tumor-prediction-on-undersampled-MRI-kSpace.git
+       git clone https://github.com/TIO-IKIM/tumor-likelihood-estimation-on-MRI-prostate-data-by-utilizing-k-Space-information.git
    
 2. Create a conda environment with Python version 3.11.2 and install the necessary dependencies:
    
