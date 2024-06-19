@@ -1,4 +1,4 @@
-# Fast tumor likelihood estimation on undersampled MRI data by utilizing k-Space information
+# Tumor-likelihood-estimation-on-MRI-prostate-data-by-utilizing-k-Space-information
 
 [![Python 3.11.2](https://img.shields.io/badge/python-3.11.2-blue.svg)](https://www.python.org/downloads/release/python-3106/) <img src="https://img.shields.io/badge/PyTorch-EE4C2C?style=flat-square&logo=Pytorch&logoColor=white"/></a> [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Black v23.9.0](https://img.shields.io/badge/black-23.9.0-orange)](https://black.readthedocs.io/en/stable/getting_started.html)
 
@@ -8,7 +8,7 @@
 
 </div>
 
-This repository contains the implementation for the paper "Fast tumor likelihood estimation on undersampled MRI data by utilizing k-Space information", a framework to predict the prostate cancer likelihood on highly undersampled DWI data. By utilizing MRI raw data, this pipeline surpasses the traditional approach of only using magnitudinal data.
+This repository contains the implementation for the paper "Tumor-likelihood-estimation-on-MRI-prostate-data-by-utilizing-k-Space-information", a framework to predict the prostate cancer likelihood by utilizing MRI raw data. This pipeline surpasses the traditional approach of only using magnitudinal data.
 
 This work is part of the **k-Radiomics** project. For more information, please visit our project-website https://k-radiomics.ikim.nrw.
 
