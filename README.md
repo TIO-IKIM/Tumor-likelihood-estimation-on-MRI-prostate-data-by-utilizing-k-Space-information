@@ -72,7 +72,7 @@ To test the model, run the testing script at ```src/test_classifier.py```.
 
 ## Citation
 ```latex
-@article{@article{rempe2024tumor,
+@article{rempe2024tumor,
   title={Tumor likelihood estimation on MRI prostate data by utilizing k-Space information},
   author={Rempe, Moritz and H{\"o}rst, Fabian and Seibold, Constantin and Hadaschik, Boris and Schlimbach, Marco and Egger, Jan and Kr{\"o}ninger, Kevin and Breuer, Felix and Blaimer, Martin and Kleesiek, Jens},
   journal={arXiv preprint arXiv:2407.06165},
